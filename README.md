@@ -6,6 +6,12 @@ Built and tested on a Samsung Galaxy Tab 3 (SM-T310, Android 4.4) that sat in it
 
 *Türkçe açıklama aşağıda.*
 
+![PC screen](docs/pc.png)
+
+![iRacing screen](docs/race.png)
+
+<sub>Screenshots use the built-in demo data (`/?demo`).</sub>
+
 ## Features
 
 **PC screen**
@@ -50,7 +56,7 @@ No app is installed on the tablet. The page polls `/data` over a keep-alive conn
 4. Run `Baslat.bat`. The console prints the address to open, e.g. `http://192.168.1.10:8080`
 5. Open that address in the tablet's browser. Add it to the home screen for full screen.
 
-Debug helpers: `/?demo` shows fake data, `/?demo&race` shows the race screen, `/sensors` lists every HWiNFO sensor.
+Debug helpers: `/?demo` shows fake data, `/?demo&race` shows the race screen (add `&rpm=7150` to freeze the RPM), `/sensors` lists every HWiNFO sensor.
 
 Note: the free version of HWiNFO turns shared memory off after 12 hours; re-enable it in settings.
 

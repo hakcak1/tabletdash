@@ -567,14 +567,16 @@ body { background-color: #04060b;
   // ---------- demo modu (?demo): sahte veriyle tasarimi gormek icin
   function demo() {
     var t0 = Date.now(), gear = 1, rpm = 3000;
+    var fixed = /[?&]rpm=(\d+)/.exec(location.search);  // ?demo&race&rpm=7150: ekran goruntusu icin sabit devir
     setInterval(function () {
       var t = (Date.now() - t0) / 1000;
       rpm += 140; if (rpm > 7600) { rpm = 5200; gear = gear >= 6 ? 2 : gear + 1; }
+      if (fixed) { rpm = +fixed[1]; gear = 4; }
       var fps = 138 + 14 * Math.sin(t / 2) + 6 * Math.sin(t * 1.7);
       onData({
         pc: { hw: true, cpuTemp: 66 + 8 * Math.sin(t / 7), cpuLoad: 38 + 22 * Math.sin(t / 3), cpuPower: 88, cpuClock: 5140, fans: [{ n: "CPU1", v: 1210 }],
               gpuTemp: 71 + 5 * Math.sin(t / 9), gpuHot: 83, gpuMemTemp: 88, gpuLoad: 94 + 4 * Math.sin(t), gpuPower: 341, gpuClock: 1935, gpuVolt: 1.006, gpuPowerPct: 87,
-              gpuMemClock: 1219, vramUsed: 14200, vramFree: 10380, ramLoad: 61, ramUsed: 19600, ramFree: 12300, ssdTemp: 47,
+              gpuMemClock: 1219, vramUsed: 14200, vramFree: 10380, ramLoad: 61, ramUsed: 19600, ramFree: 12300, ramTotal: 32768, ssdTemp: 47,
               fps: fps, fpsLow: fps * 0.78, frameTime: 1000 / fps, fpsApp: "iRacingSim64DX11" },
         race: { connected: true, onTrack: /race/.test(location.search), speed: 60 + gear * 30 + rpm / 200, rpm: rpm, gear: gear,
                 thr: rpm > 7000 ? 1 : .85, brk: 0, sl1: 6000, slShift: 7200, slLast: 7300, slBlink: 7400,
