@@ -27,6 +27,8 @@ Built and tested on a Samsung Galaxy Tab 3 (SM-T310, Android 4.4) that sat in it
 - Fuel, average fuel per lap and laps remaining
 - Position, incidents, pit limiter warning, flag-colored border
 
+**Languages:** English and Turkish. The dashboard follows the device language; tap the **EN / TR** button to switch, or open `/?lang=en`.
+
 ## How it works
 
 ```
@@ -53,7 +55,7 @@ No app is installed on the tablet. The page polls `/data` over a keep-alive conn
    New-NetFirewallRule -DisplayName "TabletDash 8080" -Direction Inbound -Protocol TCP -LocalPort 8080 -RemoteAddress LocalSubnet -Action Allow
    ```
 3. In HWiNFO64: Sensors-only → Settings → tick **Shared Memory Support**
-4. Run `Baslat.bat`. The console prints the address to open, e.g. `http://192.168.1.10:8080`
+4. Run `start.bat`. The console prints the address to open, e.g. `http://192.168.1.10:8080`
 5. Open that address in the tablet's browser. Add it to the home screen for full screen.
 
 Debug helpers: `/?demo` shows fake data, `/?demo&race` shows the race screen (add `&rpm=7150` to freeze the RPM), `/sensors` lists every HWiNFO sensor.
@@ -70,7 +72,9 @@ Eski bir Android tableti (veya tarayıcısı olan herhangi bir cihazı) **PC sı
 1. `build.ps1` ile derle.
 2. Yönetici PowerShell'de yukarıdaki güvenlik duvarı komutunu bir kez çalıştır.
 3. HWiNFO64'te **Paylaşılan Bellek Desteği**'ni aç.
-4. `Baslat.bat`'ı çalıştır, pencerede yazan adresi tabletin tarayıcısında aç.
+4. `start.bat`'ı çalıştır, pencerede yazan adresi tabletin tarayıcısında aç.
+
+Arayüz cihazın diline göre Türkçe veya İngilizce açılır; sağ üstteki **EN / TR** düğmesiyle değiştirilebilir.
 
 ## License
 

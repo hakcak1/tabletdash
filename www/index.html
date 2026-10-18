@@ -40,7 +40,9 @@ body { background-color: #04060b;
 #title { position: absolute; left: 4.4vw; top: 0; line-height: 7vh; font-size: 2.6vh; letter-spacing: .5vw; color: #6f8bab; }
 #title b { color: #22d3ee; font-weight: normal; }
 #clock { position: absolute; left: 0; right: 0; top: 0; text-align: center; font-size: 3.6vh; line-height: 7vh; letter-spacing: .3vw; color: #9fb6d1; }
-#modeBtn { position: absolute; right: 1.5vw; top: 1.2vh; height: 4.6vh; line-height: 4.6vh; padding: 0 2vw; border: 1px solid rgba(34,211,238,.45);
+#langBtn { position: absolute; right: 1.5vw; top: 1.2vh; height: 4.6vh; line-height: 4.6vh; padding: 0 1.4vw; border: 1px solid rgba(90,170,255,.25);
+  color: #9fb6d1; font-size: 2.6vh; letter-spacing: .2vw; border-radius: .4vw; }
+#modeBtn { position: absolute; right: 7.6vw; top: 1.2vh; height: 4.6vh; line-height: 4.6vh; padding: 0 2vw; border: 1px solid rgba(34,211,238,.45);
   color: #22d3ee; font-size: 2.6vh; letter-spacing: .3vw; border-radius: .4vw; background: rgba(34,211,238,.07); }
 
 /* ---------- PC gorunumu ---------- */
@@ -116,22 +118,23 @@ body { background-color: #04060b;
   <div id="dot"></div><div id="title"><b>TABLETDASH</b> // <span id="titleTxt">SİSTEM</span></div>
   <div id="clock">--:--</div>
   <div id="modeBtn">OTO</div>
+  <div id="langBtn">EN</div>
 </div>
 
 <!-- ================= PC ================= -->
 <div id="pc" class="view">
-  <div id="hwMsg">HWiNFO verisi gelmiyor.<br>PC'de HWiNFO'yu "Paylaşılan Bellek Desteği" açık şekilde çalıştır.</div>
+  <div id="hwMsg" data-i="hwMsg"></div>
 
   <div class="gauge" style="left:1.5vw;">
     <canvas id="cpuGauge"></canvas>
     <div class="gName">CPU</div>
     <div class="gTemp" id="cpuTemp">--</div>
-    <div class="gLoad" id="cpuLoad">YÜK --</div>
-    <div class="gChips"><div class="chip"><span>GÜÇ</span><b id="cpuPower">--</b></div><div class="chip"><span>FAN</span><b id="cpuFan">--</b></div></div>
+    <div class="gLoad" id="cpuLoad">--</div>
+    <div class="gChips"><div class="chip"><span data-i="power"></span><b id="cpuPower">--</b></div><div class="chip"><span>FAN</span><b id="cpuFan">--</b></div></div>
   </div>
 
   <div class="hud" id="fpsBox">
-    <div class="lbl">KARE HIZI</div>
+    <div class="lbl" data-i="fps"></div>
     <div id="fpsApp">&nbsp;</div>
     <div id="fps">--</div>
     <div id="fpsSub">&nbsp;</div>
@@ -142,16 +145,16 @@ body { background-color: #04060b;
     <canvas id="gpuGauge"></canvas>
     <div class="gName">GPU</div>
     <div class="gTemp" id="gpuTemp">--</div>
-    <div class="gLoad" id="gpuLoad">YÜK --</div>
-    <div class="gChips"><div class="chip"><span>GÜÇ</span><b id="gpuPower">--</b></div><div class="chip"><span>HOT</span><b id="gpuHot">--</b></div><div class="chip"><span>MEM</span><b id="gpuMemTemp">--</b></div></div>
+    <div class="gLoad" id="gpuLoad">--</div>
+    <div class="gChips"><div class="chip"><span data-i="power"></span><b id="gpuPower">--</b></div><div class="chip"><span>HOT</span><b id="gpuHot">--</b></div><div class="chip"><span>MEM</span><b id="gpuMemTemp">--</b></div></div>
   </div>
 
-  <div class="hud tile" style="left:1.5vw;"><div class="lbl">CPU SAATİ</div><div class="val" id="tCpuClk">--</div><div class="sub" id="sCpuClk">en hızlı çekirdek</div><div class="tbar"><div id="bCpuClk"></div></div></div>
-  <div class="hud tile" style="left:17.8vw;"><div class="lbl">GPU SAATİ</div><div class="val" id="tGpuClk">--</div><div class="sub" id="sGpuClk">&nbsp;</div><div class="tbar"><div id="bGpuClk"></div></div></div>
-  <div class="hud tile" style="left:34.1vw;"><div class="lbl">VRAM SAATİ</div><div class="val" id="tMemClk">--</div><div class="sub" id="sMemClk">&nbsp;</div><div class="tbar"><div id="bMemClk"></div></div></div>
+  <div class="hud tile" style="left:1.5vw;"><div class="lbl" data-i="cpuClk"></div><div class="val" id="tCpuClk">--</div><div class="sub" data-i="fastest"></div><div class="tbar"><div id="bCpuClk"></div></div></div>
+  <div class="hud tile" style="left:17.8vw;"><div class="lbl" data-i="gpuClk"></div><div class="val" id="tGpuClk">--</div><div class="sub" id="sGpuClk">&nbsp;</div><div class="tbar"><div id="bGpuClk"></div></div></div>
+  <div class="hud tile" style="left:34.1vw;"><div class="lbl" data-i="memClk"></div><div class="val" id="tMemClk">--</div><div class="sub" id="sMemClk">&nbsp;</div><div class="tbar"><div id="bMemClk"></div></div></div>
   <div class="hud tile" style="left:50.4vw;"><div class="lbl">VRAM</div><div class="val" id="tVram">--</div><div class="sub" id="sVram">&nbsp;</div><div class="tbar"><div id="bVram"></div></div></div>
   <div class="hud tile" style="left:66.7vw;"><div class="lbl" id="lRam">RAM</div><div class="val" id="tRam">--</div><div class="sub" id="sRam">&nbsp;</div><div class="tbar"><div id="bRam"></div></div></div>
-  <div class="hud tile" style="left:83vw;"><div class="lbl">SSD</div><div class="val" id="tSsd">--</div><div class="sub">sıcaklık</div><div class="tbar"><div id="bSsd"></div></div></div>
+  <div class="hud tile" style="left:83vw;"><div class="lbl">SSD</div><div class="val" id="tSsd">--</div><div class="sub" data-i="temp"></div><div class="tbar"><div id="bSsd"></div></div></div>
 </div>
 
 <!-- ================= YARIS ================= -->
@@ -161,21 +164,21 @@ body { background-color: #04060b;
   <div class="pedal" id="brk"><div></div></div>
   <div class="pedal" id="thr"><div></div></div>
 
-  <div id="speedBox"><div class="huge" id="speed">0</div><div class="unit">KM/SA</div><div class="mini" id="temps">&nbsp;</div></div>
+  <div id="speedBox"><div class="huge" id="speed">0</div><div class="unit" data-i="kmh"></div><div class="mini" id="temps">&nbsp;</div></div>
   <div id="gear">N</div>
   <div id="pitBox">PIT</div>
   <div id="rpmBox"><div class="huge" id="rpm">0</div><div class="unit">RPM</div><div class="mini" id="bb">&nbsp;</div></div>
 
   <div class="hud" id="deltaBar"><div id="deltaFill"></div><div id="deltaMid"></div><div id="deltaTxt">--</div></div>
 
-  <div class="hud rt" style="left:2vw;"><div class="lbl">TUR</div><div class="val" id="cur">-:--.-</div><div class="sub" id="lapNo">&nbsp;</div></div>
-  <div class="hud rt" style="left:21.4vw;"><div class="lbl">SON</div><div class="val" id="last">-:--.---</div><div class="sub" id="lastDiff">&nbsp;</div></div>
-  <div class="hud rt" style="left:40.8vw;"><div class="lbl">EN İYİ</div><div class="val" id="best">-:--.---</div><div class="sub" id="left">&nbsp;</div></div>
-  <div class="hud rt" style="left:60.2vw;"><div class="lbl">YAKIT</div><div class="val" id="fuel">--</div><div class="sub" id="fuelSub">&nbsp;</div></div>
-  <div class="hud rt" style="left:79.6vw;"><div class="lbl">POZİSYON</div><div class="val" id="pos">--</div><div class="sub" id="posSub">&nbsp;</div></div>
+  <div class="hud rt" style="left:2vw;"><div class="lbl" data-i="lap"></div><div class="val" id="cur">-:--.-</div><div class="sub" id="lapNo">&nbsp;</div></div>
+  <div class="hud rt" style="left:21.4vw;"><div class="lbl" data-i="last"></div><div class="val" id="last">-:--.---</div><div class="sub" id="lastDiff">&nbsp;</div></div>
+  <div class="hud rt" style="left:40.8vw;"><div class="lbl" data-i="best"></div><div class="val" id="best">-:--.---</div><div class="sub" id="left">&nbsp;</div></div>
+  <div class="hud rt" style="left:60.2vw;"><div class="lbl" data-i="fuel"></div><div class="val" id="fuel">--</div><div class="sub" id="fuelSub">&nbsp;</div></div>
+  <div class="hud rt" style="left:79.6vw;"><div class="lbl" data-i="pos"></div><div class="val" id="pos">--</div><div class="sub" id="posSub">&nbsp;</div></div>
 </div>
 
-<div id="offline">PC'YE BAĞLANTI YOK<div>8 saniyedir veri gelmiyor. TabletDash.exe çalışıyor mu, tablet Wi-Fi'a bağlı mı?</div></div>
+<div id="offline"><span data-i="off1"></span><div data-i="off2"></div></div>
 
 <script>
 (function () {
@@ -208,6 +211,45 @@ body { background-color: #04060b;
   function store(k, v) { try { if (v === undefined) return localStorage.getItem(k); localStorage.setItem(k, v); } catch (e) { return null; } }
   function bar(id, frac) { setStyle($(id), "width", (ok(frac) ? clamp(frac, 0, 1) * 100 : 0).toFixed(1) + "%"); }
   function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
+
+  // ---------- dil (EN / TR): ?lang=en|tr, kayitli secim, yoksa cihaz dili
+  var I18N = {
+    en: { sys: "SYSTEM", auto: "AUTO", pc: "PC", race: "RACE", load: "LOAD", power: "POWER", fps: "FRAMERATE",
+          cpuClk: "CPU CLOCK", gpuClk: "GPU CLOCK", memClk: "VRAM CLOCK", fastest: "fastest core", temp: "temperature",
+          kmh: "KM/H", lap: "LAP", last: "LAST", best: "BEST", fuel: "FUEL", pos: "POSITION",
+          noGame: "no game detected", eff: "effective", idle: "idle", used: "used",
+          lapN: "Lap", toGo: "to go", remain: "Remaining", laps: "laps", perLap: "L/lap", calc: "calculating…",
+          cls: "Class", inc: "inc", water: "WATER", oil: "OIL", bb: "BB", track: "TRACK", limiter: "LIMITER", pit: "PIT",
+          hwMsg: "No data from HWiNFO.<br>Run HWiNFO on the PC with \"Shared Memory Support\" enabled.",
+          off1: "NO CONNECTION TO PC", off2: "No data for 8 seconds. Is TabletDash.exe running and is the tablet on Wi-Fi?" },
+    tr: { sys: "SİSTEM", auto: "OTO", pc: "PC", race: "YARIŞ", load: "YÜK", power: "GÜÇ", fps: "KARE HIZI",
+          cpuClk: "CPU SAATİ", gpuClk: "GPU SAATİ", memClk: "VRAM SAATİ", fastest: "en hızlı çekirdek", temp: "sıcaklık",
+          kmh: "KM/SA", lap: "TUR", last: "SON", best: "EN İYİ", fuel: "YAKIT", pos: "POZİSYON",
+          noGame: "oyun algılanmadı", eff: "efektif", idle: "boşta", used: "dolu",
+          lapN: "Tur", toGo: "kaldı", remain: "Kalan", laps: "tur", perLap: "L/tur", calc: "hesaplanıyor…",
+          cls: "Sınıf", inc: "olay", water: "SU", oil: "YAĞ", bb: "FD", track: "PİST", limiter: "LİMİTER", pit: "PİT",
+          hwMsg: "HWiNFO verisi gelmiyor.<br>PC'de HWiNFO'yu \"Paylaşılan Bellek Desteği\" açık şekilde çalıştır.",
+          off1: "PC'YE BAĞLANTI YOK", off2: "8 saniyedir veri gelmiyor. TabletDash.exe çalışıyor mu, tablet Wi-Fi'a bağlı mı?" }
+  };
+  var qLang = /[?&]lang=(en|tr)/.exec(location.search);
+  var lang = qLang ? qLang[1] : (store("lang") || (/^tr/i.test(navigator.language || navigator.userLanguage || "") ? "tr" : "en"));
+  if (!I18N[lang]) lang = "en";
+  function L(k) { return I18N[lang][k]; }
+  function applyLang() {
+    document.documentElement.lang = lang;
+    var els = document.querySelectorAll("[data-i]");
+    for (var i = 0; i < els.length; i++) els[i].innerHTML = L(els[i].getAttribute("data-i"));
+    setText($("langBtn"), lang === "tr" ? "TR" : "EN");
+  }
+  applyLang();
+  $("langBtn").addEventListener("click", function () {
+    lang = lang === "tr" ? "en" : "tr";
+    store("lang", lang);
+    applyLang();
+    setText($("modeBtn"), L(mode));
+    activeView = null;
+    render();
+  }, false);
 
   // Renk skalasi: cyan -> yesil -> sari -> kirmizi
   var STOPS = [[0, [34, 211, 238]], [0.42, [74, 222, 128]], [0.62, [251, 191, 36]], [0.8, [251, 75, 107]], [1, [251, 75, 107]]];
@@ -318,14 +360,14 @@ body { background-color: #04060b;
   }
 
   // ---------- mod secimi (OTO / PC / YARIS)
-  var modes = ["auto", "pc", "race"], modeNames = { auto: "OTO", pc: "PC", race: "YARIŞ" };
+  var modes = ["auto", "pc", "race"];
   var mode = store("mode") || "auto";
   if (modes.indexOf(mode) < 0) mode = "auto";
-  setText($("modeBtn"), modeNames[mode]);
+  setText($("modeBtn"), L(mode));
   $("modeBtn").addEventListener("click", function () {
     mode = modes[(modes.indexOf(mode) + 1) % modes.length];
     store("mode", mode);
-    setText($("modeBtn"), modeNames[mode]);
+    setText($("modeBtn"), L(mode));
     render();
   }, false);
 
@@ -372,7 +414,7 @@ body { background-color: #04060b;
     setHtml(el, ok(t) ? Math.round(t) + "<small>°C</small>" : "--");
     setCls(el, "gTemp " + heat(t, warn, hot));
     setStyle(el, "textShadow", ok(t) ? "0 0 3vh " + rgb(scale((t - T_MIN) / (T_MAX - T_MIN)), 0.55) : "none");
-    setText($(k + "Load"), "YÜK " + (ok(l) ? Math.round(l) + "%" : "--"));
+    setText($(k + "Load"), L("load") + " " + (ok(l) ? Math.round(l) + "%" : "--"));
   }
 
   setInterval(function () {
@@ -394,7 +436,7 @@ body { background-color: #04060b;
       activeView = want;
       setCls($("pc"), want === "pc" ? "view on" : "view");
       setCls($("race"), want === "race" ? "view on" : "view");
-      setText($("titleTxt"), want === "pc" ? "SİSTEM" : "iRACING");
+      setText($("titleTxt"), want === "pc" ? L("sys") : "iRACING");
       if (want === "pc") { paintPc(); drawFps($("fpsGraph")); }
     }
     if (want === "pc") renderPc(state.pc || {}); else renderRace(race);
@@ -415,7 +457,7 @@ body { background-color: #04060b;
 
     // FPS
     var hasFps = ok(p.fps) && p.fps > 0;
-    setText($("fpsApp"), hasFps && p.fpsApp ? p.fpsApp.toUpperCase() : (hasFps ? " " : "oyun algılanmadı"));
+    setText($("fpsApp"), hasFps && p.fpsApp ? p.fpsApp.toUpperCase() : (hasFps ? " " : L("noGame")));
     setCls($("fps"), !hasFps ? "dim" : p.fps >= 120 ? "c-cyan" : p.fps >= 60 ? "c-green" : p.fps >= 40 ? "c-amber" : "c-red");
     setStyle($("fps"), "textShadow", hasFps ? "0 0 3.5vh rgba(34,211,238,.5)" : "none");
     var sub = [];
@@ -432,7 +474,7 @@ body { background-color: #04060b;
     bar("bGpuClk", p.gpuClock / Math.max(2000, gpuClkMax));
     if (p.gpuMemClock > memClkMax) memClkMax = p.gpuMemClock;
     setHtml($("tMemClk"), ok(p.gpuMemClock) ? Math.round(p.gpuMemClock) + "<small>MHz</small>" : "--");
-    setText($("sMemClk"), ok(p.gpuMemClock) && p.gpuMemClock > 500 ? "efektif " + (p.gpuMemClock * 16 / 1000).toFixed(1) + " Gbps" : "boşta");
+    setText($("sMemClk"), ok(p.gpuMemClock) && p.gpuMemClock > 500 ? L("eff") + " " + (p.gpuMemClock * 16 / 1000).toFixed(1) + " Gbps" : L("idle"));
     bar("bMemClk", p.gpuMemClock / Math.max(1219, memClkMax));
     var vramTot = ok(p.vramUsed) && ok(p.vramFree) ? p.vramUsed + p.vramFree : NaN;
     setHtml($("tVram"), ok(p.vramUsed) ? (p.vramUsed / 1024).toFixed(1) + "<small>GB</small>" : "--");
@@ -441,7 +483,7 @@ body { background-color: #04060b;
     var ramTot = ok(p.ramTotal) && p.ramTotal > 0 ? p.ramTotal : (ok(p.ramUsed) && ok(p.ramFree) ? p.ramUsed + p.ramFree : NaN);
     setText($("lRam"), ok(ramTot) ? "RAM · " + Math.round(ramTot / 1024) + " GB" : "RAM");
     setHtml($("tRam"), ok(p.ramUsed) ? (p.ramUsed / 1024).toFixed(1) + "<small>GB</small>" : "--");
-    setText($("sRam"), (ok(ramTot) ? "/ " + Math.round(ramTot / 1024) + " GB" : "") + (ok(p.ramLoad) ? " · " + Math.round(p.ramLoad) + "% dolu" : ""));
+    setText($("sRam"), (ok(ramTot) ? "/ " + Math.round(ramTot / 1024) + " GB" : "") + (ok(p.ramLoad) ? " · " + Math.round(p.ramLoad) + "% " + L("used") : ""));
     bar("bRam", p.ramLoad / 100);
     setHtml($("tSsd"), ok(p.ssdTemp) ? Math.round(p.ssdTemp) + "<small>°C</small>" : "--");
     setCls($("tSsd"), "val " + heat(p.ssdTemp, 55, 70));
@@ -483,16 +525,16 @@ body { background-color: #04060b;
 
     var limiter = (r.warn & 0x10) !== 0;
     $("pitBox").style.display = (limiter || r.pit) ? "block" : "none";
-    setText($("pitBox"), limiter ? "LİMİTER" : "PİT");
+    setText($("pitBox"), limiter ? L("limiter") : L("pit"));
 
     var temps = [];
-    if (ok(r.water)) temps.push("SU " + num(r.water) + "°");
-    if (ok(r.oil)) temps.push("YAĞ " + num(r.oil) + "°");
+    if (ok(r.water)) temps.push(L("water") + " " + num(r.water) + "°");
+    if (ok(r.oil)) temps.push(L("oil") + " " + num(r.oil) + "°");
     setText($("temps"), temps.join("  ") || " ");
     var info = [];
     if (ok(r.fps) && r.fps > 0) info.push("FPS " + Math.round(r.fps));
-    if (ok(r.bb) && r.bb > 0) info.push("FD " + r.bb.toFixed(1) + "%");
-    else if (ok(r.trackTemp)) info.push("PİST " + num(r.trackTemp) + "°");
+    if (ok(r.bb) && r.bb > 0) info.push(L("bb") + " " + r.bb.toFixed(1) + "%");
+    else if (ok(r.trackTemp)) info.push(L("track") + " " + num(r.trackTemp) + "°");
     setText($("bb"), info.join("  ·  ") || " ");
 
     var fill = $("deltaFill");
@@ -512,17 +554,17 @@ body { background-color: #04060b;
     setText($("cur"), lapTime(r.cur, 1));
     setText($("last"), lapTime(r.last, 3));
     setText($("best"), lapTime(r.best, 3));
-    setText($("lapNo"), ok(r.lap) && r.lap > 0 ? "Tur " + r.lap + (ok(r.lapsLeft) && r.lapsLeft > 0 && r.lapsLeft < 10000 ? " · " + r.lapsLeft + " kaldı" : "") : " ");
+    setText($("lapNo"), ok(r.lap) && r.lap > 0 ? L("lapN") + " " + r.lap + (ok(r.lapsLeft) && r.lapsLeft > 0 && r.lapsLeft < 10000 ? " · " + r.lapsLeft + " " + L("toGo") : "") : " ");
     var diff = r.last > 0 && r.best > 0 ? r.last - r.best : NaN;
     setText($("lastDiff"), ok(diff) ? (diff > 0 ? "+" : "") + diff.toFixed(3) : " ");
-    setText($("left"), hms(r.timeLeft) ? "Kalan " + hms(r.timeLeft) : " ");
+    setText($("left"), hms(r.timeLeft) ? L("remain") + " " + hms(r.timeLeft) : " ");
 
     setText($("fuel"), ok(r.fuel) ? r.fuel.toFixed(1) + " L" : "--");
     setCls($("fuel"), "val" + (ok(r.fuelLaps) && r.fuelLaps < 2 ? " c-red" : ok(r.fuelLaps) && r.fuelLaps < 4 ? " c-amber" : ""));
-    setText($("fuelSub"), ok(r.fuelLaps) ? r.fuelLaps.toFixed(1) + " tur · " + r.fuelPerLap.toFixed(2) + " L/tur" : "hesaplanıyor…");
+    setText($("fuelSub"), ok(r.fuelLaps) ? r.fuelLaps.toFixed(1) + " " + L("laps") + " · " + r.fuelPerLap.toFixed(2) + " " + L("perLap") : L("calc"));
 
     setText($("pos"), r.pos > 0 ? "P" + r.pos : "--");
-    setText($("posSub"), (r.classPos > 0 && r.classPos !== r.pos ? "Sınıf P" + r.classPos + " · " : "") + (ok(r.inc) ? r.inc + "x olay" : ""));
+    setText($("posSub"), (r.classPos > 0 && r.classPos !== r.pos ? L("cls") + " P" + r.classPos + " · " : "") + (ok(r.inc) ? r.inc + "x " + L("inc") : ""));
 
     var f = r.flags || 0, col = "transparent";
     if (f & 0x10000) col = "#111";

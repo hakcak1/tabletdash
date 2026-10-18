@@ -19,7 +19,7 @@ namespace TabletDash
     {
         static volatile string pcJson = "{\"hw\":false}";
         static volatile string raceJson = "{\"connected\":false}";
-        static volatile string sensorDump = "HWiNFO verisi yok.";
+        static volatile string sensorDump = "No HWiNFO data yet.";
         static string wwwDir;
         static int port = 8080;
 
@@ -36,16 +36,16 @@ namespace TabletDash
             try { listener.Start(); }
             catch (SocketException ex)
             {
-                Console.WriteLine("Port " + port + " acilamadi: " + ex.Message);
-                Console.WriteLine("Baska bir TabletDash zaten acik olabilir.");
+                Console.WriteLine("Could not open port " + port + ": " + ex.Message);
+                Console.WriteLine("Another TabletDash may already be running.");
                 Thread.Sleep(8000);
                 return;
             }
 
-            Console.WriteLine("TabletDash calisiyor. Tabletin tarayicisinda su adreslerden birini ac:");
+            Console.WriteLine("TabletDash is running. Open one of these addresses in the tablet's browser:");
             foreach (string ip in LocalIPs()) Console.WriteLine("    http://" + ip + ":" + port + "/");
-            Console.WriteLine("Sensor listesi: http://localhost:" + port + "/sensors");
-            Console.WriteLine("Kapatmak icin bu pencereyi kapat.");
+            Console.WriteLine("Sensor list: http://localhost:" + port + "/sensors");
+            Console.WriteLine("Close this window to stop.");
 
             while (true)
             {
@@ -211,7 +211,7 @@ namespace TabletDash
                     if (r == null)
                     {
                         pcJson = "{\"hw\":false}";
-                        sensorDump = "HWiNFO bulunamadi. HWiNFO'yu 'Shared Memory Support' acik olarak calistir.";
+                        sensorDump = "HWiNFO not found. Run HWiNFO with 'Shared Memory Support' enabled.";
                     }
                     else
                     {
