@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>TabletDash</title>
+<!-- Android 4.4 tarayicisi icin: ES5, flexbox/transform yok, mutlak konumlama, -webkit- onekli gradyanlar. -->
+<style>
+html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; color: #e6f1ff;
+  font-family: "sans-serif-condensed", "Roboto Condensed", "Roboto", "Arial Narrow", Arial, sans-serif;
+  -webkit-user-select: none; -webkit-tap-highlight-color: rgba(0,0,0,0); }
+body { background-color: #04060b;
+  background-image: -webkit-radial-gradient(50% 0%, ellipse cover, rgba(34,211,238,.13), rgba(4,6,11,0) 62%),
+                    -webkit-linear-gradient(rgba(120,190,255,.035) 1px, rgba(0,0,0,0) 1px),
+                    -webkit-linear-gradient(left, rgba(120,190,255,.035) 1px, rgba(0,0,0,0) 1px);
+  background-image: radial-gradient(ellipse at 50% 0%, rgba(34,211,238,.13), rgba(4,6,11,0) 62%),
+                    linear-gradient(rgba(120,190,255,.035) 1px, rgba(0,0,0,0) 1px),
+                    linear-gradient(90deg, rgba(120,190,255,.035) 1px, rgba(0,0,0,0) 1px);
+  background-size: 100% 100%, 3vw 3vw, 3vw 3vw; }
+.view { position: absolute; left: 0; top: 0; right: 0; bottom: 0; display: none; }
+.view.on { display: block; }
+.abs { position: absolute; }
+.c-cyan { color: #22d3ee; } .c-green { color: #4ade80; } .c-amber { color: #fbbf24; } .c-red { color: #fb4b6b; } .c-mag { color: #e879f9; }
+.dim { color: #5b6b80; }
+
+/* HUD paneli: ince cerceve + koselerde neon braket */
+.hud { position: absolute; background: rgba(12,18,30,.78); border: 1px solid rgba(90,170,255,.13); border-radius: .4vw; }
+.hud:before, .hud:after { content: ""; position: absolute; width: 1.6vw; height: 1.6vw; border-color: #22d3ee; border-style: solid; opacity: .85; }
+.hud:before { left: -1px; top: -1px; border-width: 2px 0 0 2px; }
+.hud:after { right: -1px; bottom: -1px; border-width: 0 2px 2px 0; }
+.lbl { font-size: 2.3vh; letter-spacing: .35vw; color: #6f8bab; text-transform: uppercase; }
+
+/* Ust cubuk */
+#bar { position: absolute; left: 0; right: 0; top: 0; height: 7vh; z-index: 5; }
+#dot { position: absolute; left: 1.6vw; top: 2.6vh; width: 1.8vh; height: 1.8vh; border-radius: 1vh; background: #555; }
+#dot.ok { background: #22d3ee; box-shadow: 0 0 1.2vh #22d3ee; } #dot.bad { background: #fb4b6b; box-shadow: 0 0 1.2vh #fb4b6b; }
+#dot.slow { background: #fbbf24; box-shadow: 0 0 1.2vh #fbbf24; }
+#title { position: absolute; left: 4.4vw; top: 0; line-height: 7vh; font-size: 2.6vh; letter-spacing: .5vw; color: #6f8bab; }
+#title b { color: #22d3ee; font-weight: normal; }
+#clock { position: absolute; left: 0; right: 0; top: 0; text-align: center; font-size: 3.6vh; line-height: 7vh; letter-spacing: .3vw; color: #9fb6d1; }
+#modeBtn { position: absolute; right: 1.5vw; top: 1.2vh; height: 4.6vh; line-height: 4.6vh; padding: 0 2vw; border: 1px solid rgba(34,211,238,.45);
+  color: #22d3ee; font-size: 2.6vh; letter-spacing: .3vw; border-radius: .4vw; background: rgba(34,211,238,.07); }
+
+/* ---------- PC gorunumu ---------- */
+.gauge { position: absolute; top: 8vh; width: 36vw; height: 61vh; }
+.gauge canvas { position: absolute; left: 0; top: 0; width: 100%; height: 100%; }
+.gName { position: absolute; left: 0; right: 0; top: 17vh; text-align: center; font-size: 2.6vh; letter-spacing: .6vw; color: #6f8bab; }
+.gTemp { position: absolute; left: 0; right: 0; top: 21vh; text-align: center; font-size: 15vh; line-height: 15vh; font-weight: bold; letter-spacing: -.2vw; }
+.gTemp small { font-size: 5vh; vertical-align: top; line-height: 8vh; margin-left: .3vw; font-weight: normal; }
+.gLoad { position: absolute; left: 0; right: 0; top: 37vh; text-align: center; font-size: 3.2vh; letter-spacing: .25vw; color: #e879f9; }
+.gChips { position: absolute; left: 0; right: 0; top: 50vh; text-align: center; white-space: nowrap; }
+.chip { display: inline-block; margin: 0 .4vw; padding: .6vh 1vw; border: 1px solid rgba(90,170,255,.18); border-radius: .4vw;
+  background: rgba(8,12,20,.85); font-size: 2.9vh; color: #dbe8f7; }
+.chip span { color: #6f8bab; font-size: 2.1vh; letter-spacing: .15vw; margin-right: .5vw; }
+
+#fpsBox { left: 38.2vw; width: 23.6vw; top: 9vh; height: 59vh; }
+#fpsBox .lbl { position: absolute; left: 0; right: 0; top: 2.2vh; text-align: center; }
+#fpsApp { position: absolute; left: 1vw; right: 1vw; top: 6vh; text-align: center; font-size: 2.4vh; color: #9fb6d1;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#fps { position: absolute; left: 0; right: 0; top: 10vh; text-align: center; font-size: 17vh; line-height: 18vh; font-weight: bold; letter-spacing: -.3vw; }
+#fpsSub { position: absolute; left: 0; right: 0; top: 29vh; text-align: center; font-size: 2.7vh; color: #9fb6d1; }
+#fpsSub b { color: #e6f1ff; font-weight: normal; }
+#fpsGraph { position: absolute; left: 1vw; right: 1vw; bottom: 1.5vh; width: 21.6vw; height: 23vh; }
+
+.tile { top: 71vh; height: 26vh; width: 15.3vw; }
+.tile .lbl { position: absolute; left: 1.3vw; top: 2.2vh; font-size: 2.1vh; letter-spacing: .25vw; }
+.tile .val { position: absolute; left: 1.3vw; top: 6.4vh; font-size: 4.4vw; line-height: 10vh; font-weight: bold; white-space: nowrap; }
+.tile .val small { font-size: 2.8vh; font-weight: normal; color: #6f8bab; margin-left: .3vw; }
+.tile .sub { position: absolute; left: 1.3vw; bottom: 5.4vh; font-size: 2.3vh; color: #8aa1bd; white-space: nowrap; }
+.tbar { position: absolute; left: 1.3vw; right: 1.3vw; bottom: 2.4vh; height: 1.1vh; background: rgba(90,170,255,.1); overflow: hidden; }
+.tbar div { height: 100%; width: 0; background: #22d3ee;
+  background-image: -webkit-linear-gradient(left, #0ea5e9, #22d3ee 60%, #a5f3fc);
+  background-image: linear-gradient(90deg, #0ea5e9, #22d3ee 60%, #a5f3fc); box-shadow: 0 0 1vh rgba(34,211,238,.7); }
+
+#hwMsg { position: absolute; left: 12vw; right: 12vw; top: 36vh; text-align: center; font-size: 3.4vh; line-height: 5vh;
+  background: rgba(40,28,10,.95); border: 1px solid #fbbf24; color: #fbbf24; padding: 2vh 2vw; display: none; z-index: 3; }
+
+/* ---------- Yaris gorunumu ---------- */
+#flag { position: absolute; left: 0; right: 0; top: 0; bottom: 0; border: 1.2vw solid transparent; pointer-events: none; z-index: 4; }
+#leds { position: absolute; left: 2vw; right: 2vw; top: 8.5vh; height: 9vh; text-align: center; white-space: nowrap; }
+.led { display: inline-block; width: 4.6vw; height: 4.6vw; margin: 0 .85vw; border-radius: 2.3vw; background: #111826; border: 1px solid #1d2a3d; }
+.led.g { background: #22c55e; box-shadow: 0 0 1.6vw #22c55e; } .led.y { background: #facc15; box-shadow: 0 0 1.6vw #facc15; }
+.led.r { background: #ef4444; box-shadow: 0 0 1.6vw #ef4444; } .led.b { background: #3b82f6; box-shadow: 0 0 2vw #3b82f6; }
+#gear { position: absolute; left: 33vw; width: 34vw; top: 18vh; height: 44vh; text-align: center; font-size: 44vh; line-height: 44vh; font-weight: bold;
+  text-shadow: 0 0 3vh rgba(34,211,238,.55); }
+#pitBox { position: absolute; left: 33vw; width: 34vw; top: 20vh; height: 40vh; background: #1d4ed8; border-radius: .6vw; display: none;
+  text-align: center; font-size: 12vh; line-height: 40vh; font-weight: bold; color: #fff; z-index: 2; box-shadow: 0 0 4vh #3b82f6; }
+#speedBox, #rpmBox { position: absolute; top: 22vh; width: 28vw; }
+#speedBox { left: 3vw; } #rpmBox { right: 3vw; text-align: right; }
+.huge { font-size: 17vh; line-height: 18vh; font-weight: bold; }
+.unit { font-size: 2.6vh; color: #6f8bab; letter-spacing: .35vw; }
+.mini { font-size: 3.2vh; color: #9fb6d1; margin-top: 2vh; }
+.pedal { position: absolute; top: 20vh; height: 40vh; width: 1.6vw; background: #111826; border-radius: .8vw; overflow: hidden; }
+.pedal div { position: absolute; left: 0; right: 0; bottom: 0; height: 0; }
+#thr { right: 0.6vw; } #thr div { background: #22c55e; box-shadow: 0 0 1vh #22c55e; }
+#brk { left: 0.6vw; } #brk div { background: #ef4444; box-shadow: 0 0 1vh #ef4444; }
+#deltaBar { left: 3vw; right: 3vw; top: 64vh; height: 8vh; overflow: hidden; }
+#deltaFill { position: absolute; top: 0; bottom: 0; left: 50%; width: 0; }
+#deltaTxt { position: absolute; left: 0; right: 0; top: 0; text-align: center; font-size: 6vh; line-height: 8vh; font-weight: bold; }
+#deltaMid { position: absolute; left: 50%; top: 0; bottom: 0; width: 2px; background: #2a3a52; }
+.rt { top: 75vh; height: 21vh; width: 18.4vw; }
+.rt .lbl { position: absolute; left: 1.5vw; top: 1.8vh; font-size: 2.3vh; }
+.rt .val { position: absolute; left: 1.5vw; top: 6vh; font-size: 3.6vw; line-height: 8vh; font-weight: bold; white-space: nowrap; }
+.rt .sub { position: absolute; left: 1.5vw; bottom: 1.6vh; font-size: 2.6vh; color: #8aa1bd; white-space: nowrap; }
+
+#offline { position: absolute; left: 0; right: 0; top: 0; bottom: 0; background: rgba(4,6,11,.9); z-index: 10; display: none;
+  text-align: center; padding-top: 38vh; font-size: 5vh; color: #fb4b6b; letter-spacing: .3vw; }
+#offline div { font-size: 3vh; color: #8aa1bd; margin-top: 2vh; letter-spacing: 0; }
+</style>
+</head>
+<body>
+
+<div id="bar">
+  <div id="dot"></div><div id="title"><b>TABLETDASH</b> // <span id="titleTxt">SİSTEM</span></div>
+  <div id="clock">--:--</div>
+  <div id="modeBtn">OTO</div>
+</div>
+
+<!-- ================= PC ================= -->
+<div id="pc" class="view">
+  <div id="hwMsg">HWiNFO verisi gelmiyor.<br>PC'de HWiNFO'yu "Paylaşılan Bellek Desteği" açık şekilde çalıştır.</div>
+
+  <div class="gauge" style="left:1.5vw;">
+    <canvas id="cpuGauge"></canvas>
+    <div class="gName">CPU</div>
+    <div class="gTemp" id="cpuTemp">--</div>
+    <div class="gLoad" id="cpuLoad">YÜK --</div>
+    <div class="gChips"><div class="chip"><span>GÜÇ</span><b id="cpuPower">--</b></div><div class="chip"><span>FAN</span><b id="cpuFan">--</b></div></div>
+  </div>
+
+  <div class="hud" id="fpsBox">
+    <div class="lbl">KARE HIZI</div>
+    <div id="fpsApp">&nbsp;</div>
+    <div id="fps">--</div>
+    <div id="fpsSub">&nbsp;</div>
+    <canvas id="fpsGraph"></canvas>
+  </div>
+
+  <div class="gauge" style="left:62.5vw;">
+    <canvas id="gpuGauge"></canvas>
+    <div class="gName">GPU</div>
+    <div class="gTemp" id="gpuTemp">--</div>
+    <div class="gLoad" id="gpuLoad">YÜK --</div>
+    <div class="gChips"><div class="chip"><span>GÜÇ</span><b id="gpuPower">--</b></div><div class="chip"><span>HOT</span><b id="gpuHot">--</b></div><div class="chip"><span>MEM</span><b id="gpuMemTemp">--</b></div></div>
+  </div>
+
+  <div class="hud tile" style="left:1.5vw;"><div class="lbl">CPU SAATİ</div><div class="val" id="tCpuClk">--</div><div class="sub" id="sCpuClk">en hızlı çekirdek</div><div class="tbar"><div id="bCpuClk"></div></div></div>
+  <div class="hud tile" style="left:17.8vw;"><div class="lbl">GPU SAATİ</div><div class="val" id="tGpuClk">--</div><div class="sub" id="sGpuClk">&nbsp;</div><div class="tbar"><div id="bGpuClk"></div></div></div>
+  <div class="hud tile" style="left:34.1vw;"><div class="lbl">VRAM SAATİ</div><div class="val" id="tMemClk">--</div><div class="sub" id="sMemClk">&nbsp;</div><div class="tbar"><div id="bMemClk"></div></div></div>
+  <div class="hud tile" style="left:50.4vw;"><div class="lbl">VRAM</div><div class="val" id="tVram">--</div><div class="sub" id="sVram">&nbsp;</div><div class="tbar"><div id="bVram"></div></div></div>
+  <div class="hud tile" style="left:66.7vw;"><div class="lbl" id="lRam">RAM</div><div class="val" id="tRam">--</div><div class="sub" id="sRam">&nbsp;</div><div class="tbar"><div id="bRam"></div></div></div>
+  <div class="hud tile" style="left:83vw;"><div class="lbl">SSD</div><div class="val" id="tSsd">--</div><div class="sub">sıcaklık</div><div class="tbar"><div id="bSsd"></div></div></div>
+</div>
+
+<!-- ================= YARIS ================= -->
+<div id="race" class="view">
+  <div id="flag"></div>
+  <div id="leds"></div>
+  <div class="pedal" id="brk"><div></div></div>
+  <div class="pedal" id="thr"><div></div></div>
+
+  <div id="speedBox"><div class="huge" id="speed">0</div><div class="unit">KM/SA</div><div class="mini" id="temps">&nbsp;</div></div>
+  <div id="gear">N</div>
+  <div id="pitBox">PIT</div>
+  <div id="rpmBox"><div class="huge" id="rpm">0</div><div class="unit">RPM</div><div class="mini" id="bb">&nbsp;</div></div>
+
+  <div class="hud" id="deltaBar"><div id="deltaFill"></div><div id="deltaMid"></div><div id="deltaTxt">--</div></div>
+
+  <div class="hud rt" style="left:2vw;"><div class="lbl">TUR</div><div class="val" id="cur">-:--.-</div><div class="sub" id="lapNo">&nbsp;</div></div>
+  <div class="hud rt" style="left:21.4vw;"><div class="lbl">SON</div><div class="val" id="last">-:--.---</div><div class="sub" id="lastDiff">&nbsp;</div></div>
+  <div class="hud rt" style="left:40.8vw;"><div class="lbl">EN İYİ</div><div class="val" id="best">-:--.---</div><div class="sub" id="left">&nbsp;</div></div>
+  <div class="hud rt" style="left:60.2vw;"><div class="lbl">YAKIT</div><div class="val" id="fuel">--</div><div class="sub" id="fuelSub">&nbsp;</div></div>
+  <div class="hud rt" style="left:79.6vw;"><div class="lbl">POZİSYON</div><div class="val" id="pos">--</div><div class="sub" id="posSub">&nbsp;</div></div>
+</div>
+
+<div id="offline">PC'YE BAĞLANTI YOK<div>8 saniyedir veri gelmiyor. TabletDash.exe çalışıyor mu, tablet Wi-Fi'a bağlı mı?</div></div>
+
+<script>
+(function () {
+  "use strict";
+
+  var $ = function (id) { return document.getElementById(id); };
+  var DEMO = /[?&]demo/.test(location.search);
+  var raf = window.requestAnimationFrame || window.webkitRequestAnimationFrame || function (f) { return setTimeout(f, 33); };
+
+  // ---------- yardimcilar
+  function setText(el, s) { if (el._t !== s) { el._t = s; el.textContent = s; } }
+  function setHtml(el, s) { if (el._h !== s) { el._h = s; el.innerHTML = s; } }
+  function setCls(el, c) { if (el._c !== c) { el._c = c; el.className = c; } }
+  function setStyle(el, k, v) { var key = "_s" + k; if (el[key] !== v) { el[key] = v; el.style[k] = v; } }
+  function ok(v) { return typeof v === "number" && !isNaN(v); }
+  function num(v, d) { return ok(v) ? v.toFixed(d || 0) : "--"; }
+  function clamp(v, a, b) { return v < a ? a : v > b ? b : v; }
+  function heat(v, warn, hot) { return !ok(v) ? "dim" : v >= hot ? "c-red" : v >= warn ? "c-amber" : v >= warn - 25 ? "c-green" : "c-cyan"; }
+  function lapTime(s, dec) {
+    if (!ok(s) || s <= 0) return dec === 1 ? "-:--.-" : "-:--.---";
+    var m = Math.floor(s / 60), r = s - m * 60, rs = r.toFixed(dec);
+    if (r < 10) rs = "0" + rs;
+    return m + ":" + rs;
+  }
+  function hms(s) {
+    if (!ok(s) || s <= 0 || s > 86400 * 2) return "";
+    var h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), x = Math.floor(s % 60);
+    return (h ? h + ":" + (m < 10 ? "0" : "") : "") + m + ":" + (x < 10 ? "0" : "") + x;
+  }
+  function store(k, v) { try { if (v === undefined) return localStorage.getItem(k); localStorage.setItem(k, v); } catch (e) { return null; } }
+  function bar(id, frac) { setStyle($(id), "width", (ok(frac) ? clamp(frac, 0, 1) * 100 : 0).toFixed(1) + "%"); }
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
+
+  // Renk skalasi: cyan -> yesil -> sari -> kirmizi
+  var STOPS = [[0, [34, 211, 238]], [0.42, [74, 222, 128]], [0.62, [251, 191, 36]], [0.8, [251, 75, 107]], [1, [251, 75, 107]]];
+  function scale(f) {
+    f = clamp(f, 0, 1);
+    for (var i = 1; i < STOPS.length; i++) {
+      if (f <= STOPS[i][0]) {
+        var a = STOPS[i - 1], b = STOPS[i], t = (f - a[0]) / (b[0] - a[0] || 1);
+        return [Math.round(a[1][0] + (b[1][0] - a[1][0]) * t), Math.round(a[1][1] + (b[1][1] - a[1][1]) * t), Math.round(a[1][2] + (b[1][2] - a[1][2]) * t)];
+      }
+    }
+    return STOPS[STOPS.length - 1][1];
+  }
+  function rgb(c, a) { return a === undefined ? "rgb(" + c[0] + "," + c[1] + "," + c[2] + ")" : "rgba(" + c[0] + "," + c[1] + "," + c[2] + "," + a + ")"; }
+
+  function prep(cv) {
+    var dpr = window.devicePixelRatio || 1, w = cv.clientWidth, h = cv.clientHeight;
+    if (!w || !h) return null;
+    if (cv.width !== Math.round(w * dpr) || cv.height !== Math.round(h * dpr)) { cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr); }
+    var c = cv.getContext("2d");
+    c.setTransform(dpr, 0, 0, dpr, 0, 0);
+    c.clearRect(0, 0, w, h);
+    return { c: c, w: w, h: h };
+  }
+
+  // ---------- dairesel gosterge: dis halka sicaklik (20-100 C), ic halka yuk (%)
+  var T_MIN = 20, T_MAX = 100, A0 = Math.PI * 0.75, SWEEP = Math.PI * 1.5;
+  function drawGauge(cv, temp, load) {
+    var p = prep(cv); if (!p) return;
+    var c = p.c, cx = p.w / 2, cy = p.h * 0.47, R = Math.min(p.w, p.h) / 2 - 6;
+    var f = ok(temp) ? clamp((temp - T_MIN) / (T_MAX - T_MIN), 0, 1) : 0;
+    var i, a;
+
+    // tik izleri
+    var TICKS = 48;
+    for (i = 0; i <= TICKS; i++) {
+      var tf = i / TICKS; a = A0 + SWEEP * tf;
+      var major = i % 6 === 0, r1 = R * (major ? 0.9 : 0.935), r2 = R * 0.985;
+      c.strokeStyle = tf <= f && ok(temp) ? rgb(scale(tf)) : "#1a2638";
+      c.lineWidth = major ? 2.5 : 1.5;
+      c.beginPath(); c.moveTo(cx + Math.cos(a) * r1, cy + Math.sin(a) * r1); c.lineTo(cx + Math.cos(a) * r2, cy + Math.sin(a) * r2); c.stroke();
+    }
+    // olcek rakamlari
+    c.fillStyle = "#4a5d78"; c.font = Math.round(R * 0.075) + "px sans-serif"; c.textAlign = "center"; c.textBaseline = "middle";
+    for (var v = 20; v <= 100; v += 20) {
+      a = A0 + SWEEP * (v - T_MIN) / (T_MAX - T_MIN);
+      c.fillText(String(v), cx + Math.cos(a) * R * 0.79, cy + Math.sin(a) * R * 0.79);
+    }
+
+    // sicaklik halkasi
+    var rr = R * 0.86, lw = R * 0.075;
+    c.lineCap = "butt"; c.lineWidth = lw; c.strokeStyle = "#0d1522";
+    c.beginPath(); c.arc(cx, cy, rr, A0, A0 + SWEEP, false); c.stroke();
+    if (f > 0) {
+      var SEG = 72, n = Math.max(1, Math.ceil(SEG * f));
+      for (i = 0; i < n; i++) {
+        var s0 = i / SEG, s1 = Math.min(f, (i + 1) / SEG), col = scale((s0 + s1) / 2);
+        c.lineWidth = lw * 2.4; c.strokeStyle = rgb(col, 0.12);
+        c.beginPath(); c.arc(cx, cy, rr, A0 + SWEEP * s0, A0 + SWEEP * s1 + 0.01, false); c.stroke();
+        c.lineWidth = lw; c.strokeStyle = rgb(col);
+        c.beginPath(); c.arc(cx, cy, rr, A0 + SWEEP * s0, A0 + SWEEP * s1 + 0.01, false); c.stroke();
+      }
+      // uc noktasi
+      a = A0 + SWEEP * f;
+      var tip = scale(f);
+      c.fillStyle = rgb(tip, 0.25); c.beginPath(); c.arc(cx + Math.cos(a) * rr, cy + Math.sin(a) * rr, lw * 1.25, 0, Math.PI * 2); c.fill();
+      c.fillStyle = "#ffffff"; c.beginPath(); c.arc(cx + Math.cos(a) * rr, cy + Math.sin(a) * rr, lw * 0.42, 0, Math.PI * 2); c.fill();
+    }
+
+    // yuk halkasi (ic)
+    var lr = R * 0.66, lf = ok(load) ? clamp(load / 100, 0, 1) : 0;
+    c.lineWidth = R * 0.03; c.strokeStyle = "#141c2c";
+    c.beginPath(); c.arc(cx, cy, lr, A0, A0 + SWEEP, false); c.stroke();
+    if (lf > 0) {
+      c.strokeStyle = "rgba(232,121,249,.18)"; c.lineWidth = R * 0.07;
+      c.beginPath(); c.arc(cx, cy, lr, A0, A0 + SWEEP * lf, false); c.stroke();
+      c.strokeStyle = "#e879f9"; c.lineWidth = R * 0.03;
+      c.beginPath(); c.arc(cx, cy, lr, A0, A0 + SWEEP * lf, false); c.stroke();
+    }
+  }
+
+  // ---------- FPS grafigi
+  var fpsHist = [], FPS_HIST = 90;
+  function drawFps(cv) {
+    var p = prep(cv); if (!p) return;
+    var c = p.c, w = p.w, h = p.h, i, max = 60;
+    for (i = 0; i < fpsHist.length; i++) if (fpsHist[i] > max) max = fpsHist[i];
+    max = Math.ceil(max * 1.15 / 30) * 30;
+    c.font = Math.round(h * 0.09) + "px sans-serif"; c.textBaseline = "bottom"; c.textAlign = "left";
+    for (var g = 30; g < max; g += max > 200 ? 60 : 30) {
+      var gy = Math.round(h - g / max * h) + 0.5;
+      c.strokeStyle = g === 60 ? "rgba(251,191,36,.28)" : "rgba(90,170,255,.08)"; c.lineWidth = 1;
+      c.beginPath(); c.moveTo(0, gy); c.lineTo(w, gy); c.stroke();
+      c.fillStyle = "#3d4f68"; c.fillText(String(g), 2, gy - 1);
+    }
+    if (fpsHist.length < 2) return;
+    var step = w / (FPS_HIST - 1), x0 = w - (fpsHist.length - 1) * step;
+    c.beginPath(); c.moveTo(x0, h);
+    for (i = 0; i < fpsHist.length; i++) c.lineTo(x0 + i * step, h - clamp(fpsHist[i] / max, 0, 1) * h);
+    c.lineTo(w, h); c.closePath();
+    var grd = c.createLinearGradient(0, 0, 0, h);
+    grd.addColorStop(0, "rgba(34,211,238,.42)"); grd.addColorStop(1, "rgba(34,211,238,0)");
+    c.fillStyle = grd; c.fill();
+    c.beginPath();
+    for (i = 0; i < fpsHist.length; i++) { var px = x0 + i * step, py = h - clamp(fpsHist[i] / max, 0, 1) * h; if (i) c.lineTo(px, py); else c.moveTo(px, py); }
+    c.strokeStyle = "rgba(34,211,238,.25)"; c.lineWidth = 6; c.lineJoin = "round"; c.stroke();
+    c.strokeStyle = "#67e8f9"; c.lineWidth = 2; c.stroke();
+  }
+
+  // ---------- mod secimi (OTO / PC / YARIS)
+  var modes = ["auto", "pc", "race"], modeNames = { auto: "OTO", pc: "PC", race: "YARIŞ" };
+  var mode = store("mode") || "auto";
+  if (modes.indexOf(mode) < 0) mode = "auto";
+  setText($("modeBtn"), modeNames[mode]);
+  $("modeBtn").addEventListener("click", function () {
+    mode = modes[(modes.indexOf(mode) + 1) % modes.length];
+    store("mode", mode);
+    setText($("modeBtn"), modeNames[mode]);
+    render();
+  }, false);
+
+  // ---------- shift isiklari
+  var LEDS = 15, ledEls = [];
+  (function () {
+    var box = $("leds");
+    for (var i = 0; i < LEDS; i++) { var d = document.createElement("div"); d.className = "led"; box.appendChild(d); ledEls.push(d); }
+  })();
+  var maxRpmSeen = 0;
+
+  // ---------- veri ve animasyon
+  var state = { pc: { hw: false }, race: { connected: false } };
+  var lastMsg = 0, activeView = null;
+  // Yumusak animasyon: gosterilen degerler hedefe dogru kayar
+  var anim = { cpuT: NaN, cpuL: NaN, gpuT: NaN, gpuL: NaN, fps: NaN }, target = { cpuT: NaN, cpuL: NaN, gpuT: NaN, gpuL: NaN, fps: NaN };
+  var memClkMax = 0, gpuClkMax = 0;
+
+  function onData(d) { state = d; lastMsg = Date.now(); render(); }
+
+  function step() {
+    var changed = false;
+    for (var k in target) {
+      var t = target[k], a = anim[k];
+      if (!ok(t)) { if (ok(a)) { anim[k] = NaN; changed = true; } continue; }
+      if (!ok(a)) { anim[k] = t; changed = true; continue; }
+      var d = t - a;
+      if (Math.abs(d) > 0.05) { anim[k] = a + d * 0.12; changed = true; } else if (a !== t) { anim[k] = t; changed = true; }
+    }
+    if (changed && activeView === "pc") paintPc();
+    raf(step);
+  }
+
+  function paintPc() {
+    drawGauge($("cpuGauge"), anim.cpuT, anim.cpuL);
+    drawGauge($("gpuGauge"), anim.gpuT, anim.gpuL);
+    gaugeText("cpu", anim.cpuT, anim.cpuL, 70, 85);
+    gaugeText("gpu", anim.gpuT, anim.gpuL, 72, 83);
+    var f = anim.fps;
+    setText($("fps"), ok(f) && f > 0 ? String(Math.round(f)) : "--");
+  }
+  function gaugeText(k, t, l, warn, hot) {
+    var el = $(k + "Temp");
+    setHtml(el, ok(t) ? Math.round(t) + "<small>°C</small>" : "--");
+    setCls(el, "gTemp " + heat(t, warn, hot));
+    setStyle(el, "textShadow", ok(t) ? "0 0 3vh " + rgb(scale((t - T_MIN) / (T_MAX - T_MIN)), 0.55) : "none");
+    setText($(k + "Load"), "YÜK " + (ok(l) ? Math.round(l) + "%" : "--"));
+  }
+
+  setInterval(function () {
+    var pc = state.pc || {};
+    if (ok(pc.fps) && pc.fps > 0) { fpsHist.push(pc.fps); if (fpsHist.length > FPS_HIST) fpsHist.shift(); }
+    if (activeView === "pc") drawFps($("fpsGraph"));
+    var now = new Date();
+    setText($("clock"), (now.getHours() < 10 ? "0" : "") + now.getHours() + ":" + (now.getMinutes() < 10 ? "0" : "") + now.getMinutes());
+    // Kisa Wi-Fi takilmalarinda sadece nokta sarariyor; uyari ancak 8 sn veri gelmezse cikiyor.
+    var age = Date.now() - lastMsg;
+    $("offline").style.display = age > 8000 ? "block" : "none";
+    setCls($("dot"), age > 8000 ? "bad" : age > 1500 ? "slow" : "ok");
+  }, 1000);
+
+  function render() {
+    var race = state.race || {};
+    var want = mode === "auto" ? (race.connected && race.onTrack ? "race" : "pc") : mode;
+    if (want !== activeView) {
+      activeView = want;
+      setCls($("pc"), want === "pc" ? "view on" : "view");
+      setCls($("race"), want === "race" ? "view on" : "view");
+      setText($("titleTxt"), want === "pc" ? "SİSTEM" : "iRACING");
+      if (want === "pc") { paintPc(); drawFps($("fpsGraph")); }
+    }
+    if (want === "pc") renderPc(state.pc || {}); else renderRace(race);
+  }
+
+  function renderPc(p) {
+    $("hwMsg").style.display = p.hw ? "none" : "block";
+    target.cpuT = p.cpuTemp; target.cpuL = p.cpuLoad; target.gpuT = p.gpuTemp; target.gpuL = p.gpuLoad; target.fps = p.fps;
+
+    setText($("cpuPower"), ok(p.cpuPower) ? num(p.cpuPower) + " W" : "--");
+    var cpuFan = (p.fans && p.fans[0]) ? p.fans[0].v : NaN;
+    setText($("cpuFan"), ok(cpuFan) ? num(cpuFan) + " rpm" : "--");
+    setText($("gpuPower"), ok(p.gpuPower) ? num(p.gpuPower) + " W" : "--");
+    setText($("gpuHot"), ok(p.gpuHot) ? num(p.gpuHot) + "°" : "--");
+    setCls($("gpuHot"), heat(p.gpuHot, 85, 95));
+    setText($("gpuMemTemp"), ok(p.gpuMemTemp) ? num(p.gpuMemTemp) + "°" : "--");
+    setCls($("gpuMemTemp"), heat(p.gpuMemTemp, 90, 100));
+
+    // FPS
+    var hasFps = ok(p.fps) && p.fps > 0;
+    setText($("fpsApp"), hasFps && p.fpsApp ? p.fpsApp.toUpperCase() : (hasFps ? " " : "oyun algılanmadı"));
+    setCls($("fps"), !hasFps ? "dim" : p.fps >= 120 ? "c-cyan" : p.fps >= 60 ? "c-green" : p.fps >= 40 ? "c-amber" : "c-red");
+    setStyle($("fps"), "textShadow", hasFps ? "0 0 3.5vh rgba(34,211,238,.5)" : "none");
+    var sub = [];
+    if (ok(p.fpsLow) && p.fpsLow > 0) sub.push("1% LOW <b>" + Math.round(p.fpsLow) + "</b>");
+    if (ok(p.frameTime) && p.frameTime > 0) sub.push("<b>" + p.frameTime.toFixed(1) + "</b> ms");
+    setHtml($("fpsSub"), sub.join(" &nbsp;·&nbsp; ") || "&nbsp;");
+
+    // kutucuklar
+    setHtml($("tCpuClk"), ok(p.cpuClock) ? (p.cpuClock / 1000).toFixed(2) + "<small>GHz</small>" : "--");
+    bar("bCpuClk", p.cpuClock / 5300);
+    if (p.gpuClock > gpuClkMax) gpuClkMax = p.gpuClock;
+    setHtml($("tGpuClk"), ok(p.gpuClock) ? Math.round(p.gpuClock) + "<small>MHz</small>" : "--");
+    setText($("sGpuClk"), ok(p.gpuVolt) ? p.gpuVolt.toFixed(3) + " V" + (ok(p.gpuPowerPct) ? " · TDP " + p.gpuPowerPct + "%" : "") : " ");
+    bar("bGpuClk", p.gpuClock / Math.max(2000, gpuClkMax));
+    if (p.gpuMemClock > memClkMax) memClkMax = p.gpuMemClock;
+    setHtml($("tMemClk"), ok(p.gpuMemClock) ? Math.round(p.gpuMemClock) + "<small>MHz</small>" : "--");
+    setText($("sMemClk"), ok(p.gpuMemClock) && p.gpuMemClock > 500 ? "efektif " + (p.gpuMemClock * 16 / 1000).toFixed(1) + " Gbps" : "boşta");
+    bar("bMemClk", p.gpuMemClock / Math.max(1219, memClkMax));
+    var vramTot = ok(p.vramUsed) && ok(p.vramFree) ? p.vramUsed + p.vramFree : NaN;
+    setHtml($("tVram"), ok(p.vramUsed) ? (p.vramUsed / 1024).toFixed(1) + "<small>GB</small>" : "--");
+    setText($("sVram"), ok(vramTot) ? "/ " + Math.round(vramTot / 1024) + " GB" : " ");
+    bar("bVram", p.vramUsed / vramTot);
+    var ramTot = ok(p.ramTotal) && p.ramTotal > 0 ? p.ramTotal : (ok(p.ramUsed) && ok(p.ramFree) ? p.ramUsed + p.ramFree : NaN);
+    setText($("lRam"), ok(ramTot) ? "RAM · " + Math.round(ramTot / 1024) + " GB" : "RAM");
+    setHtml($("tRam"), ok(p.ramUsed) ? (p.ramUsed / 1024).toFixed(1) + "<small>GB</small>" : "--");
+    setText($("sRam"), (ok(ramTot) ? "/ " + Math.round(ramTot / 1024) + " GB" : "") + (ok(p.ramLoad) ? " · " + Math.round(p.ramLoad) + "% dolu" : ""));
+    bar("bRam", p.ramLoad / 100);
+    setHtml($("tSsd"), ok(p.ssdTemp) ? Math.round(p.ssdTemp) + "<small>°C</small>" : "--");
+    setCls($("tSsd"), "val " + heat(p.ssdTemp, 55, 70));
+    bar("bSsd", (p.ssdTemp - 20) / 60);
+  }
+
+  function renderRace(r) {
+    if (!r.connected) {
+      setText($("gear"), "—"); setText($("speed"), "0"); setText($("rpm"), "0");
+      for (var k = 0; k < LEDS; k++) setCls(ledEls[k], "led");
+      return;
+    }
+    var rpm = r.rpm || 0;
+    if (rpm > maxRpmSeen) maxRpmSeen = rpm;
+
+    var g = r.gear;
+    setText($("gear"), g === -1 ? "R" : g === 0 || !ok(g) ? "N" : String(g));
+    setText($("speed"), num(r.speed));
+    setText($("rpm"), num(rpm));
+
+    // shift isiklari: iRacing'in arac bazli esikleri, yoksa redline/gorulen max
+    var first = r.sl1, last = r.slLast || r.slShift, blink = r.slBlink;
+    if (!(first > 0 && last > first)) {
+      var top = r.redline > 0 ? r.redline : maxRpmSeen;
+      first = top * 0.75; last = top * 0.96; blink = top * 0.985;
+    }
+    if (!(blink > 0)) blink = last;
+    var blinking = rpm >= blink && rpm > 0, on = blinking ? (Math.floor(Date.now() / 90) % 2 === 0) : false;
+    var lit = Math.max(0, Math.min(LEDS, Math.ceil((rpm - first) / (last - first) * LEDS)));
+    for (var i = 0; i < LEDS; i++) {
+      var c = "led";
+      if (blinking) c = on ? "led b" : "led";
+      else if (i < lit) c = i < 5 ? "led g" : i < 10 ? "led y" : "led r";
+      setCls(ledEls[i], c);
+    }
+
+    setStyle($("thr").firstChild, "height", Math.round((r.thr || 0) * 100) + "%");
+    setStyle($("brk").firstChild, "height", Math.round((r.brk || 0) * 100) + "%");
+
+    var limiter = (r.warn & 0x10) !== 0;
+    $("pitBox").style.display = (limiter || r.pit) ? "block" : "none";
+    setText($("pitBox"), limiter ? "LİMİTER" : "PİT");
+
+    var temps = [];
+    if (ok(r.water)) temps.push("SU " + num(r.water) + "°");
+    if (ok(r.oil)) temps.push("YAĞ " + num(r.oil) + "°");
+    setText($("temps"), temps.join("  ") || " ");
+    var info = [];
+    if (ok(r.fps) && r.fps > 0) info.push("FPS " + Math.round(r.fps));
+    if (ok(r.bb) && r.bb > 0) info.push("FD " + r.bb.toFixed(1) + "%");
+    else if (ok(r.trackTemp)) info.push("PİST " + num(r.trackTemp) + "°");
+    setText($("bb"), info.join("  ·  ") || " ");
+
+    var fill = $("deltaFill");
+    if (r.deltaOk && ok(r.delta)) {
+      var d = clamp(r.delta, -2, 2), w = Math.abs(d) / 2 * 50;
+      setStyle(fill, "width", w + "%");
+      setStyle(fill, "left", d < 0 ? (50 - w) + "%" : "50%");
+      setStyle(fill, "background", d < 0 ? "rgba(34,197,94,.45)" : "rgba(239,68,68,.45)");
+      setText($("deltaTxt"), (r.delta > 0 ? "+" : "") + r.delta.toFixed(2));
+      setCls($("deltaTxt"), r.delta < 0 ? "c-green" : r.delta > 0 ? "c-red" : "");
+    } else {
+      setStyle(fill, "width", "0");
+      setText($("deltaTxt"), "--");
+      setCls($("deltaTxt"), "dim");
+    }
+
+    setText($("cur"), lapTime(r.cur, 1));
+    setText($("last"), lapTime(r.last, 3));
+    setText($("best"), lapTime(r.best, 3));
+    setText($("lapNo"), ok(r.lap) && r.lap > 0 ? "Tur " + r.lap + (ok(r.lapsLeft) && r.lapsLeft > 0 && r.lapsLeft < 10000 ? " · " + r.lapsLeft + " kaldı" : "") : " ");
+    var diff = r.last > 0 && r.best > 0 ? r.last - r.best : NaN;
+    setText($("lastDiff"), ok(diff) ? (diff > 0 ? "+" : "") + diff.toFixed(3) : " ");
+    setText($("left"), hms(r.timeLeft) ? "Kalan " + hms(r.timeLeft) : " ");
+
+    setText($("fuel"), ok(r.fuel) ? r.fuel.toFixed(1) + " L" : "--");
+    setCls($("fuel"), "val" + (ok(r.fuelLaps) && r.fuelLaps < 2 ? " c-red" : ok(r.fuelLaps) && r.fuelLaps < 4 ? " c-amber" : ""));
+    setText($("fuelSub"), ok(r.fuelLaps) ? r.fuelLaps.toFixed(1) + " tur · " + r.fuelPerLap.toFixed(2) + " L/tur" : "hesaplanıyor…");
+
+    setText($("pos"), r.pos > 0 ? "P" + r.pos : "--");
+    setText($("posSub"), (r.classPos > 0 && r.classPos !== r.pos ? "Sınıf P" + r.classPos + " · " : "") + (ok(r.inc) ? r.inc + "x olay" : ""));
+
+    var f = r.flags || 0, col = "transparent";
+    if (f & 0x10000) col = "#111";
+    else if (f & 0x10) col = "#ef4444";
+    else if (f & (0x8 | 0x100 | 0x4000 | 0x8000)) col = "#facc15";
+    else if (f & 0x20) col = "#3b82f6";
+    else if (f & 0x2) col = "#f1f5f9";
+    else if (f & 0x1) col = (Math.floor(Date.now() / 400) % 2) ? "#f1f5f9" : "#111";
+    setStyle($("flag"), "borderColor", col);
+  }
+
+  // ---------- baglanti: keep-alive uzerinden surekli /data istegi.
+  // Tek uzun akis (SSE) Wi-Fi'da bir paket kaybolunca TCP yeniden denemesi yuzunden saniyelerce donuyordu.
+  // Kisa istekler takilirsa 1.5 sn'de iptal edilip hemen tekrar denenir; surekli trafik tabletin Wi-Fi'ini de uyanik tutar.
+  var seq = 0;
+  function poll() {
+    var x = new XMLHttpRequest(), done = false, started = Date.now();
+    var timer = setTimeout(function () {
+      if (done) return;
+      done = true;
+      try { x.abort(); } catch (e) {}
+      poll();
+    }, 1500);
+    x.onreadystatechange = function () {
+      if (x.readyState !== 4 || done) return;
+      done = true;
+      clearTimeout(timer);
+      if (x.status === 200) {
+        try { onData(JSON.parse(x.responseText)); } catch (e) {}
+        var gap = activeView === "race" ? 30 : 150;
+        setTimeout(poll, Math.max(0, gap - (Date.now() - started)));
+      } else {
+        setTimeout(poll, 500);
+      }
+    };
+    x.open("GET", "/data?" + (seq++), true);
+    x.send();
+  }
+
+  function connect() { poll(); }
+
+  // ---------- demo modu (?demo): sahte veriyle tasarimi gormek icin
+  function demo() {
+    var t0 = Date.now(), gear = 1, rpm = 3000;
+    setInterval(function () {
+      var t = (Date.now() - t0) / 1000;
+      rpm += 140; if (rpm > 7600) { rpm = 5200; gear = gear >= 6 ? 2 : gear + 1; }
+      var fps = 138 + 14 * Math.sin(t / 2) + 6 * Math.sin(t * 1.7);
+      onData({
+        pc: { hw: true, cpuTemp: 66 + 8 * Math.sin(t / 7), cpuLoad: 38 + 22 * Math.sin(t / 3), cpuPower: 88, cpuClock: 5140, fans: [{ n: "CPU1", v: 1210 }],
+              gpuTemp: 71 + 5 * Math.sin(t / 9), gpuHot: 83, gpuMemTemp: 88, gpuLoad: 94 + 4 * Math.sin(t), gpuPower: 341, gpuClock: 1935, gpuVolt: 1.006, gpuPowerPct: 87,
+              gpuMemClock: 1219, vramUsed: 14200, vramFree: 10380, ramLoad: 61, ramUsed: 19600, ramFree: 12300, ssdTemp: 47,
+              fps: fps, fpsLow: fps * 0.78, frameTime: 1000 / fps, fpsApp: "iRacingSim64DX11" },
+        race: { connected: true, onTrack: /race/.test(location.search), speed: 60 + gear * 30 + rpm / 200, rpm: rpm, gear: gear,
+                thr: rpm > 7000 ? 1 : .85, brk: 0, sl1: 6000, slShift: 7200, slLast: 7300, slBlink: 7400,
+                fuel: 42.6, fuelPerLap: 2.84, fuelLaps: 15, lap: 7, lapsLeft: 13, timeLeft: 1534, pos: 3, classPos: 3,
+                cur: t % 92, last: 91.482, best: 91.105, delta: -0.6 + Math.sin(t / 4), deltaOk: true,
+                flags: 0, warn: 0, pit: false, water: 88, oil: 102, trackTemp: 31, bb: 54.5, inc: 2, fps: fps }
+      });
+    }, 33);
+  }
+
+  raf(step);
+  if (DEMO) demo(); else connect();
+})();
+</script>
+</body>
+</html>
